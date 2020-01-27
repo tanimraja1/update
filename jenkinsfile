@@ -2,14 +2,10 @@ def CONTAINER_NAME="$params.serviceimage"
 def SERVICE_NAME="$params.service"
 def CONTAINER_TAG="$params.tag"
 def REMOTE_IP="$params.ip"
+def TOMCAT_VERSION="$params.tomcatversion"
+def JAVA_VERSION="$params.javaversion"
 
 node {
-
-    stage('Version Info'){
-        def dockerHome = tool 'myDocker'
-        def mavenHome  = tool 'myMaven'
-        env.PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
-    }
 
     stage('Checkout') {
         checkout scm
@@ -18,6 +14,11 @@ node {
     stage("Image Prune"){
         sh 'whoami'
         imagePrune(CONTAINER_NAME)
+    }
+    
+    stage('Version Info'){
+        sed command goes here
+        sed command goes here
     }
 
     stage('Image Build'){
