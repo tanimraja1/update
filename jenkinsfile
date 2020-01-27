@@ -1,0 +1,51 @@
+def CONTAINER_NAME="$params.serviceimage"
+def SERVICE_NAME="$params.service"
+def CONTAINER_TAG="$params.tag"
+def REMOTE_IP="$params.ip"
+
+node {
+
+    stage('Version Info'){
+        def dockerHome = tool 'myDocker'
+        def mavenHome  = tool 'myMaven'
+        env.PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
+    }
+
+    stage('Checkout') {
+        checkout scm
+    }
+
+    stage("Image Prune"){
+        sh 'whoami'
+        imagePrune(CONTAINER_NAME)
+    }
+
+    stage('Image Build'){
+        imageBuild(CONTAINER_NAME, CONTAINER_TAG, SERVICE_NAME)
+    }
+
+    stage('Push to Docker Registry'){
+         withCredentials([usernamePassword(credentialsId: 'harbor-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            pushToImage(CONTAINER_NAME, CONTAINER_TAG, REMOTE_IP, USERNAME, PASSWORD)
+        }
+    } 
+
+}
+
+def imagePrune(containerName){
+    try {
+        sh "docker image prune -f"
+    } catch(error){}
+}
+
+def imageBuild(containerName, tag, service){
+    sh "cd $params.service && docker build -t $containerName:$params.tag  -t $containerName --pull --no-cache ."
+    echo "Image build complete"
+}
+
+def pushToImage(containerName, tag, remoteIp, dockerUser, dockerPassword){
+    sh "docker login -u $dockerUser -p $dockerPassword $remoteIp:80"
+    sh "docker tag $containerName:$tag $remoteIp:80/$params.service/$containerName:$tag && docker tag $containerName:latest $remoteIp:80/$params.service/$containerName:latest"
+    sh "docker push $remoteIp:80/$params.service/$containerName:$tag && docker push $remoteIp:80/$params.service/$containerName:latest"
+    echo "Image push complete"
+}
