@@ -20,7 +20,7 @@ rm jdk*.tar.gz && \
 mv jdk* ${JAVA_HOME}
 
 COPY apache-tomcat-9.65.34.tar.gz /
-RUN tar -xvf apache-tomcat-${TOMCAT_VERSION}.tar.gz && \
+RUN tar -xvf apache-tomcat-9.65.34.tar.gz && \
  rm apache-tomcat*.tar.gz && \
  mv apache-tomcat* ${CATALINA_HOME}
 
